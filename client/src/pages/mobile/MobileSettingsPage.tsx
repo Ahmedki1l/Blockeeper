@@ -7,11 +7,13 @@ import { useState } from "react";
 import { User, Bell, Shield, Fingerprint, ChevronRight, LogOut, Moon, Globe, Wifi, Sun } from "lucide-react";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
 
 export default function MobileSettingsPage() {
   const { theme, toggleTheme } = useTheme();
+  const { t, isRTL } = useLanguage();
   const isDark = theme === "dark";
   const [, setLocation] = useLocation();
 
@@ -37,7 +39,7 @@ export default function MobileSettingsPage() {
   }
 
   return (
-    <MobileLayout title="Settings">
+    <MobileLayout title={t("settings.title")}>
       <div className="px-4 space-y-4 pt-2 pb-4" style={{ background: bg }}>
 
         {/* Profile Card */}

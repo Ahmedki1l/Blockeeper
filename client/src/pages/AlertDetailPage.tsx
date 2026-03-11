@@ -12,18 +12,8 @@ import {
 } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
-
-const TIMELINE_EVENTS = [
-  { time: "14:32:01", label: "Subject entered frame", type: "entry" },
-  { time: "14:32:15", label: "Anomaly score exceeded threshold (80)", type: "alert" },
-  { time: "14:32:28", label: "Dwell time exceeded 30s", type: "warning" },
-  { time: "14:32:45", label: "Alert triggered — Loitering detected", type: "critical" },
-  { time: "14:33:10", label: "Subject moved to adjacent zone", type: "info" },
-  { time: "14:33:30", label: "Alert reviewed by operator", type: "resolved" },
-];
-
-const DETECTED_OBJECTS = ["Person", "Backpack", "Hoodie"];
 
 export default function AlertDetailPage({ params }: { params?: { id?: string } }) {
   const alertId = params?.id || "ALT-001";
@@ -32,6 +22,7 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
   const [activeTab, setActiveTab] = useState<"details" | "timeline" | "notes">("details");
   const [notes, setNotes] = useState("");
   const { theme } = useTheme();
+  const { t, isRTL } = useLanguage();
   const isDark = theme === "dark";
 
   const textPrimary = isDark ? "#F1F5F9" : "#0F172A";
@@ -44,16 +35,43 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
   const controlBg   = isDark ? "#0A0D1A" : "#F1F5F9";
   const rowHover    = isDark ? "rgba(255,255,255,0.02)" : "rgba(0,0,0,0.02)";
 
+  const TIMELINE_EVENTS = [
+    { time: "14:32:01", labelKey: "alertDetail.personEntered", type: "entry" },
+    { time: "14:32:28", labelKey: "alertDetail.dwellExceeded", type: "warning" },
+    { time: "14:32:45", labelKey: "alertDetail.alertTriggered", type: "critical" },
+    { time: "14:33:10", labelKey: "alertDetail.subjectMoved", type: "info" },
+    { time: "14:33:30", labelKey: "alertDetail.alertReviewed", type: "resolved" },
+  ];
+
+  const DETECTED_OBJECTS_KEYS = ["alertDetail.person", "alertDetail.backpack", "alertDetail.hoodie"];
+
+  const detailItems = [
+    { icon: Tag, labelKey: "alertDetail.incidentType", value: t("alert.loitering") },
+    { icon: Camera, labelKey: "alertDetail.camera", value: "Entrance A (CAM-01)" },
+    { icon: MapPin, labelKey: "alertDetail.zone", value: t("cameras.entryZone") },
+    { icon: Clock, labelKey: "alertDetail.dwellTime", value: `45 ${t("alertDetail.seconds")}` },
+    { icon: Zap, labelKey: "alertDetail.anomalyScore", value: `87 / 100 (${t("alertDetail.critical")})` },
+    { icon: User, labelKey: "alertDetail.detectedObjects", value: DETECTED_OBJECTS_KEYS.map(k => t(k)).join(", ") },
+    { icon: Shield, labelKey: "alertDetail.trackId", value: "TRK-2201" },
+    { icon: FileText, labelKey: "alertDetail.trackId", value: "TRK-2201" },
+  ];
+
+  const tabLabels: Record<string, string> = {
+    details: t("nav.dashboard"),
+    timeline: t("alertDetail.timeline"),
+    notes: t("alertDetail.notes"),
+  };
+
   return (
     <AppLayout>
-      <div className="p-4 lg:p-6 space-y-5 animate-bk-fade-up">
+      <div className="p-4 lg:p-6 space-y-5 animate-bk-fade-up" dir={isRTL ? "rtl" : "ltr"}>
         {/* Breadcrumb */}
         <div className="flex items-center gap-2">
           <Link href="/alerts" className="flex items-center gap-1.5 text-sm transition-colors hover:opacity-80" style={{ color: textMuted, textDecoration: "none" }}>
-            <ArrowLeft size={15} />
-            Alerts
+            <ArrowLeft size={15} style={{ transform: isRTL ? "rotate(180deg)" : "none" }} />
+            {t("alertDetail.back")}
           </Link>
-          <ChevronRight size={13} style={{ color: textMuted }} />
+          <ChevronRight size={13} style={{ color: textMuted, transform: isRTL ? "rotate(180deg)" : "none" }} />
           <span className="text-sm font-medium" style={{ color: accent }}>{alertId}</span>
         </div>
 
@@ -61,34 +79,36 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
         <div className="flex items-start justify-between flex-wrap gap-3">
           <div>
             <div className="flex items-center gap-3 mb-1">
-              <h2 className="font-bold text-xl" style={{ color: textPrimary }}>Loitering Detected</h2>
+              <h2 className="font-bold text-xl" style={{ color: textPrimary }}>{t("alert.loiteringDetected")}</h2>
               <span className="px-2.5 py-1 rounded-full text-xs font-bold" style={{ background: "rgba(239,68,68,0.15)", color: "#EF4444", border: "1px solid rgba(239,68,68,0.3)" }}>
-                CRITICAL · Score 87
+                {t("alertDetail.critical")} · {t("alerts.score")} 87
               </span>
             </div>
-            <p style={{ color: textMuted, fontSize: "0.8rem" }}>Entrance A · Entry Zone · Track ID: TRK-2201 · 2026-03-02 14:32</p>
+            <p style={{ color: textMuted, fontSize: "0.8rem" }}>
+              Entrance A · {t("cameras.entryZone")} · {t("alertDetail.trackId")}: TRK-2201 · 2026-03-02 14:32
+            </p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <button
               className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all"
               style={{ background: inputBg, border: `1px solid ${cardBorder}`, color: textMuted }}
-              onClick={() => toast.success("Alert shared")}
+              onClick={() => toast.success(t("alertDetail.share"))}
             >
-              <Share2 size={14} /> Share
+              <Share2 size={14} /> {t("alertDetail.share")}
             </button>
             <button
               className="flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-all"
               style={{ background: inputBg, border: `1px solid ${cardBorder}`, color: textMuted }}
-              onClick={() => toast.success("Clip downloaded")}
+              onClick={() => toast.success(t("alertDetail.download"))}
             >
-              <Download size={14} /> Export
+              <Download size={14} /> {t("alertDetail.download")}
             </button>
             <button
               className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg font-medium transition-all"
               style={{ background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", color: "#10B981" }}
-              onClick={() => toast.success("Alert marked as resolved")}
+              onClick={() => toast.success(t("alertDetail.resolve"))}
             >
-              <CheckCircle size={14} /> Mark Resolved
+              <CheckCircle size={14} /> {t("alertDetail.resolve")}
             </button>
           </div>
         </div>
@@ -110,7 +130,7 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
                 {/* Detection box overlay */}
                 <div className="absolute" style={{ top: "30%", left: "35%", width: "22%", height: "45%", border: "2px solid #EF4444", borderRadius: "4px", boxShadow: "0 0 12px rgba(239,68,68,0.4)" }}>
                   <div className="absolute -top-5 left-0 px-1.5 py-0.5 rounded text-xs font-bold" style={{ background: "#EF4444", color: "#fff", fontSize: "0.65rem" }}>
-                    Person 87%
+                    {t("alertDetail.person")} 87%
                   </div>
                 </div>
                 {/* Live badge */}
@@ -153,7 +173,7 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
                           left: `${(i / (TIMELINE_EVENTS.length - 1)) * 100}%`,
                           background: ev.type === "critical" ? "#EF4444" : ev.type === "alert" ? "#F97316" : ev.type === "warning" ? "#F59E0B" : accent,
                         }}
-                        title={ev.label}
+                        title={t(ev.labelKey)}
                       />
                     ))}
                   </div>
@@ -180,13 +200,13 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className="px-5 py-3 text-sm font-medium capitalize transition-colors"
+                    className="px-5 py-3 text-sm font-medium transition-colors"
                     style={{
                       color: activeTab === tab ? accent : textMuted,
                       borderBottom: activeTab === tab ? `2px solid ${accent}` : "2px solid transparent",
                     }}
                   >
-                    {tab}
+                    {tab === "details" ? t("alertDetail.title") : tab === "timeline" ? t("alertDetail.timeline") : t("alertDetail.notes")}
                   </button>
                 ))}
               </div>
@@ -194,23 +214,14 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
               <div className="p-5">
                 {activeTab === "details" && (
                   <div className="grid sm:grid-cols-2 gap-4">
-                    {[
-                      { icon: Tag, label: "Incident Type", value: "Loitering" },
-                      { icon: Camera, label: "Camera", value: "Entrance A (CAM-01)" },
-                      { icon: MapPin, label: "Zone", value: "Entry Zone" },
-                      { icon: Clock, label: "Dwell Time", value: "45 seconds" },
-                      { icon: Zap, label: "Anomaly Score", value: "87 / 100 (Critical)" },
-                      { icon: User, label: "Detected Objects", value: DETECTED_OBJECTS.join(", ") },
-                      { icon: Shield, label: "AI Model", value: "YOLOv8 + Pose Estimation" },
-                      { icon: FileText, label: "Track ID", value: "TRK-2201" },
-                    ].map((item, i) => (
+                    {detailItems.map((item, i) => (
                       <div key={i} className="flex items-start gap-3">
                         <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: `${accent}15` }}>
                           <item.icon size={13} style={{ color: accent }} />
                         </div>
                         <div>
-                          <p style={{ color: textMuted, fontSize: "0.72rem" }}>{item.label}</p>
-                          <p style={{ color: textPrimary, fontSize: "0.82rem", fontWeight: 500 }}>{item.value}</p>
+                          <p style={{ color: textMuted, fontSize: "0.72rem" }}>{t(item.labelKey)}</p>
+                          <p style={{ color: textPrimary, fontSize: "0.85rem", fontWeight: 500 }}>{item.value}</p>
                         </div>
                       </div>
                     ))}
@@ -228,7 +239,7 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
                             {i < TIMELINE_EVENTS.length - 1 && <div className="w-px flex-1 mt-1" style={{ background: divider, minHeight: "24px" }} />}
                           </div>
                           <div className="pb-3">
-                            <p style={{ color: textPrimary, fontSize: "0.82rem", fontWeight: 500 }}>{ev.label}</p>
+                            <p style={{ color: textPrimary, fontSize: "0.82rem", fontWeight: 500 }}>{t(ev.labelKey)}</p>
                             <p style={{ color: textMuted, fontSize: "0.72rem", fontFamily: "monospace" }}>{ev.time}</p>
                           </div>
                         </div>
@@ -243,16 +254,16 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
                       className="w-full px-3 py-2.5 rounded-lg text-sm outline-none resize-none transition-all"
                       style={{ background: inputBg, border: `1px solid ${cardBorder}`, color: textPrimary, fontFamily: "inherit" }}
                       rows={4}
-                      placeholder="Add investigation notes here..."
+                      placeholder={t("alertDetail.notesPlaceholder")}
                       value={notes}
                       onChange={e => setNotes(e.target.value)}
                     />
                     <button
                       className="px-4 py-2 text-sm rounded-lg font-medium transition-all"
                       style={{ background: `${accent}20`, border: `1px solid ${accent}40`, color: accent }}
-                      onClick={() => toast.success("Notes saved")}
+                      onClick={() => toast.success(t("alertDetail.saveNotes"))}
                     >
-                      Save Notes
+                      {t("alertDetail.saveNotes")}
                     </button>
                   </div>
                 )}
@@ -264,45 +275,45 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
           <div className="space-y-4">
             {/* Actions */}
             <div className="rounded-xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}`, boxShadow: isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 12px rgba(0,0,0,0.06)" }}>
-              <h3 className="font-semibold mb-3" style={{ color: textPrimary, fontSize: "0.875rem" }}>Actions</h3>
+              <h3 className="font-semibold mb-3" style={{ color: textPrimary, fontSize: "0.875rem" }}>{t("alerts.actions")}</h3>
               <div className="space-y-2">
-                <button className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", color: "#10B981" }} onClick={() => toast.success("Alert resolved")}>
-                  <CheckCircle size={15} /> Mark as Resolved
+                <button className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" style={{ background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)", color: "#10B981" }} onClick={() => toast.success(t("alertDetail.resolve"))}>
+                  <CheckCircle size={15} /> {t("alertDetail.resolve")}
                 </button>
                 <button className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" style={{ background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.25)", color: "#F59E0B" }} onClick={() => toast.warning("Alert escalated")}>
-                  <AlertTriangle size={15} /> Escalate Alert
+                  <AlertTriangle size={15} /> {t("status.reviewing")}
                 </button>
                 <button className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" style={{ background: `${accent}10`, border: `1px solid ${accent}30`, color: accent }} onClick={() => toast.success("Report generated")}>
-                  <FileText size={15} /> Generate Report
+                  <FileText size={15} /> {t("alertDetail.saveNotes")}
                 </button>
-                <button className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" style={{ background: inputBg, border: `1px solid ${cardBorder}`, color: textMuted }} onClick={() => toast.success("Clip downloading...")}>
-                  <Download size={15} /> Download Clip
+                <button className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" style={{ background: inputBg, border: `1px solid ${cardBorder}`, color: textMuted }} onClick={() => toast.success(t("alertDetail.download"))}>
+                  <Download size={15} /> {t("alertDetail.download")}
                 </button>
-                <button className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", color: "#F59E0B" }} onClick={() => toast.success(`${alertId} marked as false positive`)}>
-                  <ThumbsDown size={15} /> False Positive
+                <button className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium transition-all" style={{ background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.2)", color: "#F59E0B" }} onClick={() => toast.success(`${alertId} ${t("status.dismissed")}`)}>
+                  <ThumbsDown size={15} /> {t("status.dismissed")}
                 </button>
               </div>
             </div>
 
             {/* Detected Objects */}
             <div className="rounded-xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}`, boxShadow: isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 12px rgba(0,0,0,0.06)" }}>
-              <h3 className="font-semibold mb-3" style={{ color: textPrimary, fontSize: "0.875rem" }}>Detected Objects</h3>
+              <h3 className="font-semibold mb-3" style={{ color: textPrimary, fontSize: "0.875rem" }}>{t("alertDetail.detectedObjectsList")}</h3>
               <div className="flex flex-wrap gap-2">
-                {DETECTED_OBJECTS.map((obj, i) => (
-                  <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>{obj}</span>
+                {DETECTED_OBJECTS_KEYS.map((key, i) => (
+                  <span key={i} className="px-2.5 py-1 rounded-full text-xs font-medium" style={{ background: `${accent}15`, color: accent, border: `1px solid ${accent}30` }}>{t(key)}</span>
                 ))}
               </div>
             </div>
 
             {/* Related Alerts */}
             <div className="rounded-xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}`, boxShadow: isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 12px rgba(0,0,0,0.06)" }}>
-              <h3 className="font-semibold mb-3" style={{ color: textPrimary, fontSize: "0.875rem" }}>Related Alerts</h3>
+              <h3 className="font-semibold mb-3" style={{ color: textPrimary, fontSize: "0.875rem" }}>{t("alerts.title")}</h3>
               <div className="space-y-2">
                 {["ALT-005", "ALT-007"].map(id => (
                   <Link key={id} href={`/alerts/${id}`} className="flex items-center gap-2 px-3 py-2 rounded-lg transition-colors" style={{ border: `1px solid ${divider}`, textDecoration: "none" }} onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = rowHover} onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = "transparent"}>
                     <div className="w-1.5 h-1.5 rounded-full" style={{ background: "#F59E0B" }} />
                     <span style={{ color: textPrimary, fontSize: "0.8rem" }}>{id}</span>
-                    <ChevronRight size={13} className="ml-auto" style={{ color: textMuted }} />
+                    <ChevronRight size={13} className="ml-auto" style={{ color: textMuted, transform: isRTL ? "rotate(180deg)" : "none" }} />
                   </Link>
                 ))}
               </div>
@@ -310,18 +321,18 @@ export default function AlertDetailPage({ params }: { params?: { id?: string } }
 
             {/* Score Breakdown */}
             <div className="rounded-xl p-4" style={{ background: cardBg, border: `1px solid ${cardBorder}`, boxShadow: isDark ? "0 4px 20px rgba(0,0,0,0.3)" : "0 2px 12px rgba(0,0,0,0.06)" }}>
-              <h3 className="font-semibold mb-3" style={{ color: textPrimary, fontSize: "0.875rem" }}>Score Breakdown</h3>
+              <h3 className="font-semibold mb-3" style={{ color: textPrimary, fontSize: "0.875rem" }}>{t("alertDetail.anomalyScore")}</h3>
               <div className="space-y-2.5">
                 {[
-                  { label: "Dwell Time", value: 90 },
-                  { label: "Pose Anomaly", value: 82 },
-                  { label: "Zone Risk", value: 75 },
-                  { label: "Time of Day", value: 60 },
+                  { labelKey: "alertDetail.dwellTime", value: 90 },
+                  { labelKey: "alert.suspiciousPose", value: 82 },
+                  { labelKey: "cameras.zoneType", value: 75 },
+                  { labelKey: "analytics.detectionRate", value: 68 },
                 ].map((item, i) => (
                   <div key={i}>
                     <div className="flex justify-between mb-1">
-                      <span style={{ color: textMuted, fontSize: "0.75rem" }}>{item.label}</span>
-                      <span style={{ color: textPrimary, fontSize: "0.75rem", fontWeight: 600 }}>{item.value}</span>
+                      <span style={{ color: textMuted, fontSize: "0.72rem" }}>{t(item.labelKey)}</span>
+                      <span style={{ color: textPrimary, fontSize: "0.72rem", fontWeight: 600 }}>{item.value}</span>
                     </div>
                     <div className="h-1.5 rounded-full" style={{ background: isDark ? "rgba(0,212,255,0.08)" : "rgba(0,0,0,0.06)" }}>
                       <div className="h-full rounded-full" style={{ width: `${item.value}%`, background: item.value >= 85 ? "#EF4444" : item.value >= 70 ? "#F97316" : "#F59E0B" }} />

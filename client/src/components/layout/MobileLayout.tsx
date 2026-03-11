@@ -2,78 +2,31 @@
  * BLOCKEEPER MOBILE LAYOUT
  * Design: Dark Navy + Neon Cyan (Dark) / Clean White + Blue (Light)
  * Bottom tab navigation, status bar, safe area, theme toggle
- * Notification dropdown on bell icon click
+ * Notification dropdown + EN/AR language toggle
  */
 import { useState, useRef, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import {
   LayoutDashboard, Bell, Camera, BarChart2, Settings,
-  Sun, Moon, AlertTriangle, CheckCircle, Info, Clock, X, ChevronRight
+  Sun, Moon, AlertTriangle, CheckCircle, Info, Clock, X, ChevronRight, Languages
 } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const WHITE_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663089570646/RFGDf2S7CSskxcLJx8eG2q/blockeeper_1white_14a1b3c8.png";
 const COLOR_LOGO = "https://d2xsxph8kpxj0f.cloudfront.net/310519663089570646/RFGDf2S7CSskxcLJx8eG2q/blockeeper_1_color_new_7811eaf0.png";
 
-const TABS = [
-  { href: "/mobile", icon: LayoutDashboard, label: "Home" },
-  { href: "/mobile/alerts", icon: Bell, label: "Alerts", badge: 3 },
-  { href: "/mobile/cameras", icon: Camera, label: "Cameras" },
-  { href: "/mobile/analytics", icon: BarChart2, label: "Analytics" },
-  { href: "/mobile/settings", icon: Settings, label: "Settings" },
-];
+const NOTIF_TITLES: Record<string, { en: string; ar: string }> = {
+  "notif.cameraOffline": { en: "Camera Back Office offline", ar: "كاميرا المكتب الخلفي غير متصلة" },
+  "notif.alertResolved": { en: "Alert ALT-003 Resolved", ar: "تم حل التنبيه ALT-003" },
+};
 
 const NOTIFICATIONS = [
-  {
-    id: 1,
-    icon: AlertTriangle,
-    iconColor: "#EF4444",
-    iconBg: "rgba(239,68,68,0.12)",
-    title: "Loitering Detected",
-    desc: "Entrance A · Score 87",
-    time: "2 min ago",
-    unread: true,
-  },
-  {
-    id: 2,
-    icon: AlertTriangle,
-    iconColor: "#F97316",
-    iconBg: "rgba(249,115,22,0.12)",
-    title: "Suspicious Pose",
-    desc: "Aisle 3 · Score 73",
-    time: "8 min ago",
-    unread: true,
-  },
-  {
-    id: 3,
-    icon: AlertTriangle,
-    iconColor: "#EF4444",
-    iconBg: "rgba(239,68,68,0.12)",
-    title: "Unauthorized Access",
-    desc: "Storage Room · Score 91",
-    time: "15 min ago",
-    unread: true,
-  },
-  {
-    id: 4,
-    icon: Info,
-    iconColor: "#3B82F6",
-    iconBg: "rgba(59,130,246,0.12)",
-    title: "Camera Back Office offline",
-    desc: "Connection lost",
-    time: "32 min ago",
-    unread: false,
-  },
-  {
-    id: 5,
-    icon: CheckCircle,
-    iconColor: "#10B981",
-    iconBg: "rgba(16,185,129,0.12)",
-    title: "Alert ALT-003 Resolved",
-    desc: "Marked resolved by Operator AA",
-    time: "1 hr ago",
-    unread: false,
-  },
+  { id: 1, icon: AlertTriangle, iconColor: "#EF4444", iconBg: "rgba(239,68,68,0.12)", titleKey: "alert.loitering", desc: "Entrance A · Score 87", time: "2 min ago", unread: true },
+  { id: 2, icon: AlertTriangle, iconColor: "#F97316", iconBg: "rgba(249,115,22,0.12)", titleKey: "alert.suspiciousPose", desc: "Aisle 3 · Score 73", time: "8 min ago", unread: true },
+  { id: 3, icon: AlertTriangle, iconColor: "#EF4444", iconBg: "rgba(239,68,68,0.12)", titleKey: "alert.unauthorizedAccess", desc: "Storage Room · Score 91", time: "15 min ago", unread: true },
+  { id: 4, icon: Info, iconColor: "#3B82F6", iconBg: "rgba(59,130,246,0.12)", titleKey: "notif.cameraOffline", desc: "Connection lost", time: "32 min ago", unread: false },
+  { id: 5, icon: CheckCircle, iconColor: "#10B981", iconBg: "rgba(16,185,129,0.12)", titleKey: "notif.alertResolved", desc: "Marked resolved by Operator AA", time: "1 hr ago", unread: false },
 ];
 
 interface MobileLayoutProps {
@@ -88,11 +41,19 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
   const [notifications, setNotifications] = useState(NOTIFICATIONS);
   const notifRef = useRef<HTMLDivElement>(null);
   const { theme, toggleTheme } = useTheme();
+  const { lang, toggleLang, t, isRTL } = useLanguage();
   const isDark = theme === "dark";
 
   const unreadCount = notifications.filter(n => n.unread).length;
 
-  // Close dropdown on outside click
+  const TABS = [
+    { href: "/mobile", icon: LayoutDashboard, label: t("nav.dashboard") },
+    { href: "/mobile/alerts", icon: Bell, label: t("nav.alerts"), badge: 3 },
+    { href: "/mobile/cameras", icon: Camera, label: t("nav.cameras") },
+    { href: "/mobile/analytics", icon: BarChart2, label: t("nav.analytics") },
+    { href: "/mobile/settings", icon: Settings, label: t("nav.settings") },
+  ];
+
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
@@ -106,6 +67,11 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
   const markAllRead = () => setNotifications(ns => ns.map(n => ({ ...n, unread: false })));
   const markRead = (id: number) => setNotifications(ns => ns.map(n => n.id === id ? { ...n, unread: false } : n));
 
+  const getNotifTitle = (titleKey: string) => {
+    if (NOTIF_TITLES[titleKey]) return NOTIF_TITLES[titleKey][lang];
+    return t(titleKey);
+  };
+
   const bg          = isDark ? "#0A0F1E" : "#F1F5F9";
   const headerBg    = isDark ? "#0A0D1A" : "#FFFFFF";
   const accent      = isDark ? "#00D4FF" : "#3B82F6";
@@ -117,7 +83,7 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
   const hoverRowBg  = isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.03)";
 
   return (
-    <div className="flex flex-col" style={{ minHeight: "100vh", background: bg, maxWidth: "430px", margin: "0 auto", position: "relative" }}>
+    <div className="flex flex-col" style={{ minHeight: "100vh", background: bg, maxWidth: "430px", margin: "0 auto", position: "relative", direction: isRTL ? "rtl" : "ltr" }}>
       {/* Status Bar Simulation */}
       <div className="flex items-center justify-between px-5 pt-3 pb-1 flex-shrink-0" style={{ background: headerBg }}>
         <span style={{ color: textPrimary, fontSize: "0.75rem", fontWeight: 600, fontFamily: "monospace" }}>10:23</span>
@@ -143,6 +109,17 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
         <div className="flex items-center justify-between px-4 py-3 flex-shrink-0" style={{ background: headerBg, borderBottom: `1px solid ${border}` }}>
           <img src={isDark ? WHITE_LOGO : COLOR_LOGO} alt="BlocKeeper" style={{ height: "24px", objectFit: "contain" }} />
           <div className="flex items-center gap-2">
+            {/* Language Toggle */}
+            <button
+              onClick={toggleLang}
+              className="flex items-center gap-1 px-2 py-1 rounded-lg font-semibold transition-all"
+              style={{ background: `${accent}12`, border: `1px solid ${accent}30`, color: accent, fontSize: "0.65rem" }}
+              title={lang === "en" ? "Switch to Arabic" : "التحويل إلى الإنجليزية"}
+            >
+              <Languages size={11} />
+              {lang === "en" ? "عربي" : "EN"}
+            </button>
+
             {/* Theme Toggle */}
             <button onClick={toggleTheme} className="w-8 h-8 rounded-full flex items-center justify-center transition-all" style={{ background: `${accent}15`, border: `1px solid ${accent}30`, color: accent }}>
               {isDark ? <Sun size={14} /> : <Moon size={14} />}
@@ -161,10 +138,7 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
               >
                 <Bell size={15} />
                 {unreadCount > 0 && (
-                  <span
-                    className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 rounded-full flex items-center justify-center font-bold"
-                    style={{ background: "#EF4444", color: "#fff", fontSize: "0.5rem", padding: "0 2px" }}
-                  >
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-3.5 rounded-full flex items-center justify-center font-bold" style={{ background: "#EF4444", color: "#fff", fontSize: "0.5rem", padding: "0 2px" }}>
                     {unreadCount}
                   </span>
                 )}
@@ -173,24 +147,23 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
               {/* Dropdown Panel */}
               {notifOpen && (
                 <div
-                  className="absolute right-0 mt-2 rounded-xl overflow-hidden"
+                  className="absolute mt-2 rounded-xl overflow-hidden"
                   style={{
                     width: "300px",
+                    [isRTL ? "left" : "right"]: 0,
                     background: dropdownBg,
                     border: `1px solid ${dropdownBorder}`,
-                    boxShadow: isDark
-                      ? "0 20px 60px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,212,255,0.05)"
-                      : "0 20px 60px rgba(0,0,0,0.15)",
+                    boxShadow: isDark ? "0 20px 60px rgba(0,0,0,0.7)" : "0 20px 60px rgba(0,0,0,0.15)",
                     zIndex: 200,
+                    direction: isRTL ? "rtl" : "ltr",
                   }}
                 >
-                  {/* Header */}
                   <div className="flex items-center justify-between px-3 py-2.5" style={{ borderBottom: `1px solid ${dropdownBorder}` }}>
                     <div className="flex items-center gap-2">
                       <Bell size={13} style={{ color: accent }} />
-                      <span className="font-semibold text-sm" style={{ color: textPrimary }}>Notifications</span>
+                      <span className="font-semibold text-sm" style={{ color: textPrimary }}>{t("notif.title")}</span>
                       {unreadCount > 0 && (
-                        <span className="px-1.5 py-0.5 rounded-full text-xs font-bold" style={{ background: "rgba(239,68,68,0.15)", color: "#EF4444", fontSize: "0.6rem" }}>
+                        <span className="px-1.5 py-0.5 rounded-full font-bold" style={{ background: "rgba(239,68,68,0.15)", color: "#EF4444", fontSize: "0.6rem" }}>
                           {unreadCount}
                         </span>
                       )}
@@ -198,7 +171,7 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
                     <div className="flex items-center gap-2">
                       {unreadCount > 0 && (
                         <button onClick={markAllRead} className="text-xs font-medium" style={{ color: accent }}>
-                          Mark all read
+                          {t("notif.markAllRead")}
                         </button>
                       )}
                       <button onClick={() => setNotifOpen(false)} style={{ color: textMuted }}>
@@ -207,7 +180,6 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
                     </div>
                   </div>
 
-                  {/* List */}
                   <div style={{ maxHeight: "300px", overflowY: "auto" }}>
                     {notifications.map(n => {
                       const Icon = n.icon;
@@ -228,7 +200,7 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between gap-1">
-                              <span className="text-xs font-medium leading-tight" style={{ color: textPrimary }}>{n.title}</span>
+                              <span className="text-xs font-medium leading-tight" style={{ color: textPrimary }}>{getNotifTitle(n.titleKey)}</span>
                               {n.unread && <div className="w-1.5 h-1.5 rounded-full flex-shrink-0 mt-1" style={{ background: accent }} />}
                             </div>
                             <p className="text-xs mt-0.5" style={{ color: textMuted, fontSize: "0.68rem" }}>{n.desc}</p>
@@ -242,7 +214,6 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
                     })}
                   </div>
 
-                  {/* Footer */}
                   <div className="px-3 py-2" style={{ borderTop: `1px solid ${dropdownBorder}` }}>
                     <Link
                       href="/mobile/alerts"
@@ -250,7 +221,7 @@ export default function MobileLayout({ children, title, showHeader = true }: Mob
                       className="flex items-center justify-center gap-1 text-xs font-medium w-full py-1.5 rounded-lg"
                       style={{ color: accent, textDecoration: "none", background: isDark ? "rgba(0,212,255,0.06)" : "rgba(59,130,246,0.06)" }}
                     >
-                      View all alerts <ChevronRight size={11} />
+                      {t("notif.viewAll")} <ChevronRight size={11} style={{ transform: isRTL ? "rotate(180deg)" : "none" }} />
                     </Link>
                   </div>
                 </div>

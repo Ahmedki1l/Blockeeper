@@ -6,6 +6,7 @@ import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, R
 import { TrendingUp, TrendingDown } from "lucide-react";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const HOURLY = [
   { hour: "08", v: 5 }, { hour: "10", v: 8 }, { hour: "12", v: 12 },
@@ -25,6 +26,7 @@ const FALSE_POSITIVE = [
 
 export default function MobileAnalyticsPage() {
   const { theme } = useTheme();
+  const { t, isRTL } = useLanguage();
   const isDark = theme === "dark";
 
   const accent      = isDark ? "#00D4FF" : "#3B82F6";
@@ -41,7 +43,7 @@ export default function MobileAnalyticsPage() {
   };
 
   return (
-    <MobileLayout title="Analytics">
+    <MobileLayout title={t("analytics.title")}>
       <div className="px-4 space-y-4 pt-2 pb-4" style={{ background: bg }}>
 
         {/* KPI Cards */}
