@@ -5,6 +5,7 @@
 import { Camera, Wifi, WifiOff, Settings, AlertTriangle } from "lucide-react";
 import MobileLayout from "@/components/layout/MobileLayout";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
 const CAMERAS = [
@@ -23,6 +24,7 @@ const CAMERAS = [
 export default function MobileCamerasPage() {
   const online = CAMERAS.filter(c => c.status === "online").length;
   const { theme } = useTheme();
+  const { t, isRTL } = useLanguage();
   const isDark = theme === "dark";
 
   const accent      = isDark ? "#00D4FF" : "#3B82F6";
@@ -34,22 +36,22 @@ export default function MobileCamerasPage() {
   const feedBgOff   = isDark ? "#080C14" : "#E2E8F0";
 
   return (
-    <MobileLayout title="Cameras">
-      <div className="px-4 space-y-4 pt-2 pb-4" style={{ background: bg }}>
+    <MobileLayout title={t("cameras.title")}>
+      <div className="px-4 space-y-4 pt-2 pb-4" style={{ background: bg }} dir={isRTL ? "rtl" : "ltr"}>
 
         {/* Status Bar */}
         <div className="flex gap-3">
           <div className="flex-1 rounded-xl p-3 text-center" style={{ background: cardBg, border: "1px solid rgba(16,185,129,0.2)" }}>
             <div className="font-bold text-lg" style={{ color: "#10B981" }}>{online}</div>
-            <div style={{ color: textMuted, fontSize: "0.7rem" }}>Online</div>
+            <div style={{ color: textMuted, fontSize: "0.7rem" }}>{t("status.online")}</div>
           </div>
           <div className="flex-1 rounded-xl p-3 text-center" style={{ background: cardBg, border: "1px solid rgba(239,68,68,0.2)" }}>
             <div className="font-bold text-lg" style={{ color: "#EF4444" }}>{CAMERAS.length - online}</div>
-            <div style={{ color: textMuted, fontSize: "0.7rem" }}>Offline</div>
+            <div style={{ color: textMuted, fontSize: "0.7rem" }}>{t("status.offline")}</div>
           </div>
           <div className="flex-1 rounded-xl p-3 text-center" style={{ background: cardBg, border: `1px solid ${accent}25` }}>
             <div className="font-bold text-lg" style={{ color: accent }}>{CAMERAS.length}</div>
-            <div style={{ color: textMuted, fontSize: "0.7rem" }}>Total</div>
+            <div style={{ color: textMuted, fontSize: "0.7rem" }}>{t("cameras.total")}</div>
           </div>
         </div>
 
@@ -74,7 +76,7 @@ export default function MobileCamerasPage() {
                 )}
                 {cam.status === "offline" && (
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span style={{ color: "#EF4444", fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.08em" }}>OFFLINE</span>
+                    <span style={{ color: "#EF4444", fontSize: "0.7rem", fontWeight: 600, letterSpacing: "0.08em" }}>{t("status.offline").toUpperCase()}</span>
                   </div>
                 )}
               </div>
@@ -87,7 +89,7 @@ export default function MobileCamerasPage() {
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1">
                     {cam.status === "online" ? <Wifi size={13} style={{ color: "#10B981" }} /> : <WifiOff size={13} style={{ color: "#EF4444" }} />}
-                    <span style={{ color: cam.status === "online" ? "#10B981" : "#EF4444", fontSize: "0.7rem", fontWeight: 500 }}>{cam.status}</span>
+                    <span style={{ color: cam.status === "online" ? "#10B981" : "#EF4444", fontSize: "0.7rem", fontWeight: 500 }}>{cam.status === "online" ? t("status.online") : t("status.offline")}</span>
                   </div>
                   <button className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: `${accent}10` }} onClick={() => toast.info(`${cam.name} settings`)}>
                     <Settings size={13} style={{ color: textMuted }} />

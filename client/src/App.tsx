@@ -9,6 +9,8 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation, Redirect } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LanguageProvider } from "./contexts/LanguageContext";
+import { StoreProvider } from "./contexts/StoreContext";
 
 // Web App Pages
 import LoginPage from "./pages/LoginPage";
@@ -111,12 +113,16 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark" switchable>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </ThemeProvider>
+      <LanguageProvider>
+        <StoreProvider>
+        <ThemeProvider defaultTheme="dark" switchable>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </ThemeProvider>
+        </StoreProvider>
+      </LanguageProvider>
     </ErrorBoundary>
   );
 }

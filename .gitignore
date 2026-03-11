@@ -2,10 +2,6 @@
 **/node_modules
 .pnpm-store/
 
-# Manus platform artifacts (not needed locally)
-.manus-logs/
-.webdev/
-
 # Build outputs
 dist/
 build/

@@ -1,0 +1,13 @@
+
+- [x] Create LanguageContext with EN/AR support and RTL toggle
+- [x] Create translation files (en.ts and ar.ts)
+- [x] Add language toggle button (EN/AR) to AppLayout header
+- [x] Add language toggle button (EN/AR) to MobileLayout header
+- [x] Apply RTL direction to html element on language switch
+- [x] Translate all nav items, dashboard, alerts, cameras, analytics, settings pages
+- [ ] Multi-store data model with per-store cameras
+- [ ] StoreContext for global selected store state
+- [ ] Store selector component in sidebar/header
+- [ ] Dashboard camera feed thumbnail area with camera picker
+- [ ] CamerasPage filtered by selected store
+- [ ] Mobile pages updated for multi-store

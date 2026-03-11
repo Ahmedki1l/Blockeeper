@@ -8,6 +8,7 @@ import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, Cart
 import { TrendingUp, TrendingDown, BarChart2, Clock, Camera, Tag, ThumbsDown, Download } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 import { toast } from "sonner";
 
 const HOURLY = [
@@ -46,11 +47,12 @@ const FP_TREND = [
   { week: "W7", rate: 5 }, { week: "W8", rate: 4 },
 ];
 
-const PERIODS = ["Today", "7 Days", "30 Days"];
+// Periods translated dynamically below
 
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState(1);
   const { theme } = useTheme();
+  const { t, isRTL } = useLanguage();
   const isDark = theme === "dark";
 
   const textPrimary = isDark ? "#F1F5F9" : "#0F172A";
@@ -75,11 +77,11 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <h2 className="font-bold text-xl" style={{ color: textPrimary }}>Analytics & Insights</h2>
-            <p style={{ color: textMuted, fontSize: "0.8rem" }}>Last 7 days · Updated in real-time</p>
+            <h2 className="font-bold text-xl" style={{ color: textPrimary }}>{t("nav.analytics")}</h2>
+            <p style={{ color: textMuted, fontSize: "0.8rem" }}>{t("analytics.lastDays")} · {t("analytics.realtime")}</p>
           </div>
           <div className="flex items-center gap-2">
-            {PERIODS.map((p, i) => (
+            {[t("analytics.today"), t("analytics.days7"), t("analytics.days30")].map((p, i) => (
               <button key={p} onClick={() => setPeriod(i)} className="px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{
                 background: period === i ? `${accent}20` : inputBg,
                 border: `1px solid ${period === i ? accent + "60" : cardBorder}`,
@@ -89,7 +91,7 @@ export default function AnalyticsPage() {
               </button>
             ))}
             <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all" style={{ background: inputBg, border: `1px solid ${cardBorder}`, color: textMuted }} onClick={() => toast.success("Report exported")}>
-              <Download size={12} /> Export
+              <Download size={12} /> {t("analytics.export")}
             </button>
           </div>
         </div>
@@ -97,10 +99,10 @@ export default function AnalyticsPage() {
         {/* KPI Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Total Alerts", value: "134", change: "+18%", up: true, icon: BarChart2, color: "#EF4444" },
-            { label: "Avg Response Time", value: "4.2 min", change: "-12%", up: false, icon: Clock, color: "#10B981" },
-            { label: "Most Active Camera", value: "Entrance A", change: "18 alerts", up: true, icon: Camera, color: accent },
-            { label: "False Positive Rate", value: "6.7%", change: "-3.1%", up: false, icon: ThumbsDown, color: "#F59E0B" },
+            { labelKey: "analytics.totalAlerts", value: "134", change: "+18%", up: true, icon: BarChart2, color: "#EF4444" },
+            { labelKey: "analytics.avgResponse", value: "4.2 min", change: "-12%", up: false, icon: Clock, color: "#10B981" },
+            { labelKey: "analytics.mostActive", value: "Entrance A", change: "18 alerts", up: true, icon: Camera, color: accent },
+            { labelKey: "analytics.falsePositive", value: "6.7%", change: "-3.1%", up: false, icon: ThumbsDown, color: "#F59E0B" },
           ].map((kpi, i) => (
             <div key={i} className="rounded-xl p-4" style={cardStyle}>
               <div className="flex items-start justify-between mb-3">
@@ -113,7 +115,7 @@ export default function AnalyticsPage() {
                 </div>
               </div>
               <div className="font-bold text-xl mb-0.5" style={{ color: textPrimary }}>{kpi.value}</div>
-              <div style={{ color: textMuted, fontSize: "0.75rem" }}>{kpi.label}</div>
+              <div style={{ color: textMuted, fontSize: "0.75rem" }}>{t(kpi.labelKey)}</div>
             </div>
           ))}
         </div>
@@ -124,7 +126,7 @@ export default function AnalyticsPage() {
           <div className="rounded-xl p-5" style={cardStyle}>
             <div className="flex items-center gap-2 mb-5">
               <Clock size={15} style={{ color: accent }} />
-              <span className="font-semibold" style={{ color: textPrimary, fontSize: "0.875rem" }}>Alerts by Hour (Today)</span>
+              <span className="font-semibold" style={{ color: textPrimary, fontSize: "0.875rem" }}>{t("analytics.alertsByHour")}</span>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={HOURLY} barSize={16}>
@@ -141,7 +143,7 @@ export default function AnalyticsPage() {
           <div className="rounded-xl p-5" style={cardStyle}>
             <div className="flex items-center gap-2 mb-5">
               <TrendingUp size={15} style={{ color: accent }} />
-              <span className="font-semibold" style={{ color: textPrimary, fontSize: "0.875rem" }}>Weekly Alert Trend</span>
+              <span className="font-semibold" style={{ color: textPrimary, fontSize: "0.875rem" }}>{t("analytics.weeklyTrend")}</span>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart data={WEEKLY_TREND}>
@@ -150,9 +152,9 @@ export default function AnalyticsPage() {
                 <YAxis tick={{ fill: textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
                 <Tooltip {...tooltipStyle} />
                 <Legend wrapperStyle={{ fontSize: "0.75rem", color: textMuted }} />
-                <Line type="monotone" dataKey="alerts" stroke="#EF4444" strokeWidth={2} dot={{ fill: "#EF4444", r: 3 }} name="Alerts" />
-                <Line type="monotone" dataKey="resolved" stroke="#10B981" strokeWidth={2} dot={{ fill: "#10B981", r: 3 }} name="Resolved" strokeDasharray="4 2" />
-                <Line type="monotone" dataKey="fp" stroke="#F59E0B" strokeWidth={1.5} dot={{ fill: "#F59E0B", r: 2 }} name="False Positives" strokeDasharray="2 2" />
+                <Line type="monotone" dataKey="alerts" stroke="#EF4444" strokeWidth={2} dot={{ fill: "#EF4444", r: 3 }} name={t("alerts.title")} />
+                <Line type="monotone" dataKey="resolved" stroke="#10B981" strokeWidth={2} dot={{ fill: "#10B981", r: 3 }} name={t("status.resolved")} strokeDasharray="4 2" />
+                <Line type="monotone" dataKey="fp" stroke="#F59E0B" strokeWidth={1.5} dot={{ fill: "#F59E0B", r: 2 }} name={t("analytics.falsePositive")} strokeDasharray="2 2" />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -164,7 +166,7 @@ export default function AnalyticsPage() {
           <div className="lg:col-span-2 rounded-xl p-5" style={cardStyle}>
             <div className="flex items-center gap-2 mb-5">
               <Camera size={15} style={{ color: accent }} />
-              <span className="font-semibold" style={{ color: textPrimary, fontSize: "0.875rem" }}>Alerts by Camera</span>
+              <span className="font-semibold" style={{ color: textPrimary, fontSize: "0.875rem" }}>{t("analytics.alertsByCamera")}</span>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart data={BY_CAMERA} layout="vertical" barSize={14}>
@@ -181,7 +183,7 @@ export default function AnalyticsPage() {
           <div className="rounded-xl p-5" style={cardStyle}>
             <div className="flex items-center gap-2 mb-5">
               <Tag size={15} style={{ color: accent }} />
-              <span className="font-semibold" style={{ color: textPrimary, fontSize: "0.875rem" }}>By Incident Type</span>
+              <span className="font-semibold" style={{ color: textPrimary, fontSize: "0.875rem" }}>{t("analytics.byIncidentType")}</span>
             </div>
             <ResponsiveContainer width="100%" height={160}>
               <PieChart>
@@ -210,16 +212,16 @@ export default function AnalyticsPage() {
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
               <ThumbsDown size={15} style={{ color: "#F59E0B" }} />
-              <span className="font-semibold" style={{ color: textPrimary, fontSize: "0.875rem" }}>False Positive Rate Trend (8 Weeks)</span>
+              <span className="font-semibold" style={{ color: textPrimary, fontSize: "0.875rem" }}>{t("analytics.fpTrend")}</span>
             </div>
-            <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ background: "rgba(16,185,129,0.1)", color: "#10B981" }}>↓ Improving</span>
+            <span className="text-xs px-2 py-1 rounded-full font-medium" style={{ background: "rgba(16,185,129,0.1)", color: "#10B981" }}>↓ {t("analytics.improving")}</span>
           </div>
           <ResponsiveContainer width="100%" height={140}>
             <LineChart data={FP_TREND}>
               <CartesianGrid strokeDasharray="3 3" stroke={gridStroke} vertical={false} />
               <XAxis dataKey="week" tick={{ fill: textMuted, fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: textMuted, fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `${v}%`} />
-              <Tooltip {...tooltipStyle} formatter={(v) => [`${v}%`, "False Positive Rate"]} />
+              <Tooltip {...tooltipStyle} formatter={(v) => [`${v}%`, t("analytics.falsePositive")]} />
               <Line type="monotone" dataKey="rate" stroke="#F59E0B" strokeWidth={2.5} dot={{ fill: "#F59E0B", r: 4 }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
